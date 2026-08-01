@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+"""Executable entry point for the pi-agent.
+
+Runs the agent directly from the source tree without requiring installation.
+Usage: ./pi-agent "your prompt" [options]
+
+If a virtual environment exists at .venv, it is used automatically.
+"""
+
+import os
+import sys
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+
+# Prefer the project's virtual environment interpreter if present.
+_VENV_PY = os.path.join(_HERE, ".venv", "bin", "python")
+if os.path.exists(_VENV_PY) and os.path.abspath(sys.executable) != os.path.abspath(_VENV_PY):
+    os.execv(_VENV_PY, [_VENV_PY, os.path.abspath(__file__), *sys.argv[1:]])
+
+# Ensure the src/ directory is on the path so `agent` is importable.
+_SRC = os.path.join(_HERE, "src")
+if _SRC not in sys.path:
+    sys.path.insert(0, _SRC)
+
+from agent.cli import main  # noqa: E402
+
+if __name__ == "__main__":
+    raise SystemExit(main())
