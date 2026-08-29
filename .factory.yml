@@ -1,7 +1,7 @@
 version: 1
 
 commands:
-  test: false
+  test: true
 
 budget:
   max_turns: 10
