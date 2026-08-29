@@ -6,6 +6,7 @@ import argparse
 import asyncio
 import logging
 import sys
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -76,6 +77,13 @@ async def _run(prompt: str, args: argparse.Namespace) -> None:
     console.print(Markdown(answer))
 
 
+def _version() -> str:
+    try:
+        return version("pi-agent")
+    except PackageNotFoundError:  # pragma: no cover - fallback if not installed
+        return "0.0.0"
+
+
 def main(argv: Optional[list] = None) -> int:
     parser = argparse.ArgumentParser(
         prog="pi-agent",
@@ -96,6 +104,12 @@ def main(argv: Optional[list] = None) -> int:
         help="Also print spans to the console for local debugging.",
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable debug logging.")
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {_version()}",
+        help="Print the version and exit.",
+    )
 
     args = parser.parse_args(argv)
 
