@@ -4,7 +4,7 @@ commands:
   test: true
 
 budget:
-  max_turns: 40
+  max_turns: 400
 
 context: |
   Dependencies and the test runner are managed with uv, not pip. `uv sync` to
