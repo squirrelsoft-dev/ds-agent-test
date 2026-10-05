@@ -135,6 +135,6 @@ persist across sessions. You can also edit it by hand.
 ## Running tests
 
 ```bash
-source .venv/bin/activate
-python -m pytest tests/ -q
+uv sync --locked
+uv run --locked python -m pytest tests/ -q
 ```
