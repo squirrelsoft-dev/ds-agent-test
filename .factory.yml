@@ -1,7 +1,7 @@
 version: 1
 
 commands:
-  test: true
+  test: uv run --locked python -m pytest tests/ -q
 
 budget:
   max_turns: 400
