@@ -1,11 +1,13 @@
 """Tests for the pi-agent."""
 
 import asyncio
+from importlib.metadata import version
 from pathlib import Path
 
 import pytest
 
 from agent.agent import Agent, AgentConfig
+from agent.cli import main
 from agent.llm import LLMClient
 from agent.memory import Memory
 from agent.skills import load_skills, render_skill_index
@@ -112,3 +114,12 @@ def test_agent_unknown_tool_handled(tmp_path):
     agent = Agent(config=config, registry=reg, llm=FakeLLM(script))
     answer = asyncio.run(agent.run("test"))
     assert answer == "done"
+
+
+def test_version_flag(capsys):
+    with pytest.raises(SystemExit) as excinfo:
+        main(["--version"])
+    assert excinfo.value.code == 0
+    out = capsys.readouterr().out
+    assert out.strip() == f"pi-agent {version('pi-agent')}"
+
