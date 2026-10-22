@@ -61,6 +61,30 @@ Or via the installed console script:
 pi-agent "your prompt"
 ```
 
+## Listing skills
+
+You can inspect available skills offline without a model or credentials:
+
+```bash
+# Use the default skills/ directory
+./pi-agent --list-skills
+
+# Use a custom directory
+./pi-agent --list-skills --skills-dir ./my-skills
+```
+
+This prints a JSON array sorted by skill name, e.g.:
+
+```json
+[
+  { "name": "greeting", "description": "How to greet users in a friendly, professional manner." }
+]
+```
+
+If the skills directory is empty or missing, the output is `[]`.
+This command accepts no prompt, does not read stdin, and does not initialize
+telemetry or construct an agent/LLM client.
+
 ## OpenTelemetry
 
 By default the agent prints a log line noting there is no OTLP endpoint. To

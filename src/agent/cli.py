@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import json
 import logging
 import sys
 from pathlib import Path
@@ -15,6 +16,7 @@ from rich.markdown import Markdown
 
 from .agent import Agent, AgentConfig
 from .otel import setup_otel
+from .skills import load_skills
 from .tools import ToolRegistry, tool
 
 
@@ -49,6 +51,26 @@ def _register_builtin_tools(registry: ToolRegistry) -> None:
     registry.register(current_time)
 
 
+def _skills_dir(args: argparse.Namespace) -> Path:
+    """Resolve the effective skills directory from CLI args."""
+    return Path(args.skills_dir) if args.skills_dir else Path.cwd() / "skills"
+
+
+def _list_skills(skills_dir: Path) -> int:
+    """List available skills as a sorted JSON array and exit.
+
+    This path is fully offline: it does not read stdin, initialize telemetry,
+    or construct an agent/LLM client.
+    """
+    skills = load_skills(skills_dir)
+    output = [
+        {"name": skill.name, "description": skill.description}
+        for skill in sorted(skills.values(), key=lambda s: s.name)
+    ]
+    print(json.dumps(output))
+    return 0
+
+
 async def _run(prompt: str, args: argparse.Namespace) -> None:
     console = Console()
 
@@ -57,7 +79,7 @@ async def _run(prompt: str, args: argparse.Namespace) -> None:
     registry = ToolRegistry()
     _register_builtin_tools(registry)
 
-    skills_dir = Path(args.skills_dir) if args.skills_dir else Path.cwd() / "skills"
+    skills_dir = _skills_dir(args)
 
     config = AgentConfig(
         model=args.model,
@@ -86,6 +108,11 @@ def main(argv: Optional[list] = None) -> int:
     parser.add_argument("--max-turns", type=int, default=10, help="Max agent turns.")
     parser.add_argument("--skills-dir", default="skills", help="Directory containing skills.")
     parser.add_argument(
+        "--list-skills",
+        action="store_true",
+        help="List available skills as JSON and exit (offline, no prompt required).",
+    )
+    parser.add_argument(
         "--otlp-endpoint",
         help="OTLP HTTP endpoint (e.g. http://localhost:4318). "
         "Defaults to OTEL_EXPORTER_OTLP_ENDPOINT.",
@@ -106,6 +133,9 @@ def main(argv: Optional[list] = None) -> int:
         level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
+
+    if args.list_skills:
+        return _list_skills(_skills_dir(args))
 
     prompt = args.prompt
     if not prompt:
